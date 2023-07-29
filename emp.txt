@@ -1,0 +1,191 @@
+package Utils;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Map;
+
+import exam.Emp;
+
+public interface IOUtils {
+
+	
+	
+	
+	public static void storeFile(String filename,Map<Integer,Emp>emps) throws FileNotFoundException, IOException {
+		
+		try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))){
+			
+			out.writeObject(emps);
+			
+		}
+		}
+	
+	
+	public static Map<Integer,Emp> restoreFile(String filename) throws FileNotFoundException, IOException, ClassNotFoundException{
+		
+		try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))){
+			
+			return(Map<Integer,Emp>)in.readObject();
+		}
+	
+		
+	}
+	
+	}
+
+
+
+
+
+
+
+
+
+package Valudation;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.Map;
+
+import Exception.EmpHandlingException;
+import exam.Dept;
+import exam.Emp;
+
+public class EmpValidation {
+
+	
+	
+	public static Emp validateAllInputs(int empno, String ename, String email, double sal, String city, String date, String dept,Map<Integer,Emp>emps) throws EmpHandlingException {
+		
+		checkForDup(empno,emps);
+		LocalDate d1= validateForDate(date);
+		Dept dept1= checkForDepartment(dept);
+		
+		return new Emp(empno,ename,email,sal,city,d1,dept1);
+		
+	}
+	
+	
+	public static void checkForDup(int id,Map<Integer,Emp>emps) throws EmpHandlingException {
+		
+		if(emps.containsKey(id))
+			throw new EmpHandlingException("dup is found");
+		System.out.println("dup is not found");
+	}
+	
+	
+	public static LocalDate validateForDate(String date) throws EmpHandlingException {
+		
+		LocalDate d=LocalDate.parse(date);
+		int years =Period.between(LocalDate.now(), d).getYears();
+		if(years >3)
+			throw new EmpHandlingException("not valid experience");
+		
+		return d;
+		
+	}
+	
+	
+	public static Dept checkForDepartment(String dept) {
+		return Dept.valueOf(dept);
+		
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+package TesterPkg;
+
+import static Utils.IOUtils.restoreFile;
+import static Utils.IOUtils.storeFile;
+import static Valudation.EmpValidation.validateAllInputs;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+import exam.Emp;
+
+public class TesterEmp {
+
+	public static void main(String[] args) {
+		
+		
+		try(Scanner sc= new Scanner(System.in)){
+			
+			boolean exit = false;
+			Map<Integer,Emp>map =new HashMap<>();
+			while(!exit) {
+				try {
+					
+					
+					System.out.println("0.exit,1.Add,2.Display,3.Remove");
+					switch(sc.nextInt()) {
+					
+					case 1: 
+						
+						System.out.println("Enter empno,ename,email,sal,city,d1,dept1 ");
+						Emp e = validateAllInputs(sc.nextInt(),sc.next(),sc.next(),sc.nextDouble(),sc.next(),sc.next(),sc.next(),map);
+						map.put(e.getEmpno(), e);
+						System.out.println("Emp added successfully");
+						
+						
+						System.out.println("Enter the filename");
+						storeFile(sc.next(),map);
+						
+						
+						break;
+					
+						
+					case 2: 
+						System.out.println("Enter the file name");
+						restoreFile(sc.next());
+						//Map<Integer,Emp>map1
+						map.values().stream().forEach(s->System.out.println(s));
+						System.out.println("Display");
+						
+						break;
+					
+					
+					case 3:
+						//System.out.println("remove file");
+						//map.
+						System.out.println("enter id ");
+		            	int id= sc.nextInt();
+		            	map.remove(id);
+		            	map.values().stream().forEach(s->System.out.println(s));
+						
+					}
+					
+					
+					
+					
+					
+					
+					
+					
+				}catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+
+	}
+
+}
+
+
